@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block title %}Delete Patient - SekouAI{% endblock %}
+
+{% block content %}
+<main role="main">
+  <section class="card p-4 shadow-sm">
+    <h2 class="text-danger mb-3">Confirm Deletion</h2>
+    <p>Are you sure you want to delete the following patient record?</p>
+
+    <ul class="list-group mb-4">
+      <li class="list-group-item"><strong>Name:</strong> {{ patient.input_data.name }}</li>
+      <li class="list-group-item"><strong>Age:</strong> {{ patient.input_data.age }}</li>
+      <li class="list-group-item"><strong>Sex:</strong> {{ patient.input_data.sex }}</li>
+      <li class="list-group-item"><strong>Antecedents:</strong> {{ patient.input_data.antecedents or "N/A" }}</li>
+      <li class="list-group-item"><strong>Fever:</strong> {{ "Yes" if patient.input_data.fever else "No" }}</li>
+      <li class="list-group-item"><strong>Cough:</strong> {{ "Yes" if patient.input_data.cough else "No" }}</li>
+      <li class="list-group-item"><strong>Shortness of Breath:</strong> {{ "Yes" if patient.input_data.shortness_of_breath else "No" }}</li>
+      <li class="list-group-item"><strong>Risk Level:</strong>
+        {% if patient.risk_level == 'high' %}
+          <span class="badge bg-danger">High</span>
+        {% elif patient.risk_level == 'medium' %}
+          <span class="badge bg-warning text-dark">Medium</span>
+        {% elif patient.risk_level == 'low' %}
+          <span class="badge bg-success">Low</span>
+        {% else %}
+          <span class="badge bg-secondary">{{ patient.risk_level | capitalize }}</span>
+        {% endif %}
+      </li>
+      <li class="list-group-item"><strong>Date Created:</strong> {{ patient.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+    </ul>
+
+    <form method="post" id="delete-form">
+      <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-danger">
+          <i class="fas fa-trash-alt me-1"></i> Yes, Delete
+        </button>
+        <a href="/patients" class="btn btn-outline-secondary">
+          <i class="fas fa-times me-1"></i> Cancel
+        </a>
+      </div>
+    </form>
+
+    <div id="delete-status" class="mt-4" style="display:none;"></div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("delete-form");
+    const statusDiv = document.getElementById("delete-status");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const response = await fetch("/patients/{{ patient.id }}/delete", {
+        method: "POST"
+      });
+
+      if (response.ok) {
+        statusDiv.innerHTML = `
+          <div class="alert alert-success">
+            Patient deleted successfully. Redirecting...
+          </div>`;
+        statusDiv.style.display = "block";
+        setTimeout(() => {
+          window.location.href = "/patients";
+        }, 1500);
+      } else {
+        statusDiv.innerHTML = `
+          <div class="alert alert-danger">
+            Failed to delete patient.
+          </div>`;
+        statusDiv.style.display = "block";
+      }
+    });
+  });
+</script>
+{% endblock %}

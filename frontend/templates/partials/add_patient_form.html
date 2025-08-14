@@ -1,0 +1,146 @@
+<section class="card form-card shadow-sm" aria-labelledby="adult-title">
+  <h3 id="adult-title" class="card-header">Adult triage</h3>
+
+  <!-- Alerts -->
+  <div id="alert-success" class="alert alert-success d-none m-3" role="alert"></div>
+  <div id="alert-error" class="alert alert-danger d-none m-3" role="alert">Failed to add patient. Please try again.</div>
+
+  <div class="card-body">
+    <!-- Form Grid -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="name" class="form-label">Full name</label>
+        <input id="name" name="name" type="text" class="form-control" placeholder="e.g., Jane Doe" required />
+      </div>
+      <div class="col-md-3">
+        <label for="age" class="form-label">Age</label>
+        <input id="age" name="age" type="number" class="form-control" min="0" max="120" value="45" required />
+      </div>
+      <div class="col-md-3">
+        <label for="sex" class="form-label">Sex</label>
+        <select id="sex" name="sex" class="form-select" required>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="antecedents" class="form-label">Antecedents / Comorbidities</label>
+      <input id="antecedents" name="antecedents" type="text" class="form-control" placeholder="e.g., diabetes, hypertension" />
+    </div>
+
+    <!-- Symptoms -->
+    <fieldset class="mb-4">
+      <legend>Symptoms</legend>
+      <p class="text-muted small">Check all that apply.</p>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" id="fever" type="checkbox" />
+        <label class="form-check-label" for="fever">Fever</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" id="cough" type="checkbox" />
+        <label class="form-check-label" for="cough">Cough</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" id="sob" type="checkbox" />
+        <label class="form-check-label" for="sob">Shortness of breath</label>
+      </div>
+    </fieldset>
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-start gap-3 mb-3">
+      <button id="btn-adult-predict" class="btn btn-primary">Predict Risk</button>
+      <button id="btn-reset" class="btn btn-outline-secondary">Reset</button>
+    </div>
+
+    <!-- Prediction Result -->
+    <div id="result" class="text-center fw-bold"></div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const btnPredict = document.getElementById("btn-adult-predict");
+    const btnReset = document.getElementById("btn-reset");
+    const alertSuccess = document.getElementById("alert-success");
+    const alertError = document.getElementById("alert-error");
+    const result = document.getElementById("result");
+
+    function showAlert(el, message = "") {
+      alertSuccess.classList.add("d-none");
+      alertError.classList.add("d-none");
+      el.classList.remove("d-none");
+      if (message) el.textContent = message;
+    }
+
+    function resetForm() {
+      document.getElementById("name").value = "";
+      document.getElementById("age").value = "45";
+      document.getElementById("sex").value = "male";
+      document.getElementById("antecedents").value = "";
+      document.getElementById("fever").checked = false;
+      document.getElementById("cough").checked = false;
+      document.getElementById("sob").checked = false;
+      result.textContent = "";
+    }
+
+    btnPredict.addEventListener("click", async function (e) {
+      e.preventDefault();
+      btnPredict.disabled = true;
+      result.textContent = "";
+
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        age: parseInt(document.getElementById("age").value),
+        sex: document.getElementById("sex").value,
+        antecedents: document.getElementById("antecedents").value,
+        fever: document.getElementById("fever").checked,
+        cough: document.getElementById("cough").checked,
+        shortness_of_breath: document.getElementById("sob").checked
+      };
+
+      try {
+        const res = await fetch("/patients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const savedPatient = await res.json();
+
+          // Predict after saving
+          const predictRes = await fetch("/triage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (predictRes.ok) {
+            const prediction = await predictRes.json();
+            showAlert(alertSuccess, `Patient added. Risk level: ${prediction.risk_level.toUpperCase()}`);
+            result.textContent = `Predicted risk level: ${prediction.risk_level.toUpperCase()}`;
+          } else {
+            showAlert(alertSuccess, "Patient added but prediction failed.");
+          }
+
+          resetForm();
+        } else {
+          showAlert(alertError);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        showAlert(alertError);
+      } finally {
+        btnPredict.disabled = false;
+      }
+    });
+
+    btnReset.addEventListener("click", function (e) {
+      e.preventDefault();
+      resetForm();
+    });
+  });
+</script>

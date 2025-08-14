@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block title %}Prediction History - SekouAI{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="table-container card p-4">
+  <h1 class="h4 mb-3">Prediction History</h1>
+  <div class="table-responsive">
+    <table id="history-table" class="table table-striped table-hover table-bordered table-sm nowrap w-100">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>Age</th>
+          <th>Sex</th>
+          <th>Risk Level</th>
+          <th>Model</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ p.age }}</td>
+          <td>
+            {% if p.sex %}
+              <span class="badge bg-secondary">{{ p.sex }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set risk = p.risk_level %}
+            {% if risk == 'high' %}
+              <span class="badge bg-danger">High</span>
+            {% elif risk == 'medium' %}
+              <span class="badge bg-warning text-dark">Medium</span>
+            {% elif risk == 'low' %}
+              <span class="badge bg-success">Low</span>
+            {% else %}
+              <span class="badge bg-info">{{ risk | capitalize }}</span>
+            {% endif %}
+          </td>
+          <td>{{ p.model or 'Unknown' }}</td>
+          <td>{{ p.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js" defer></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js" defer></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js" defer></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js" defer></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js" defer></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js" defer></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js" defer></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      new DataTable('#history-table', {
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            extend: 'excelHtml5',
+            title: 'SekouAI_Prediction_History',
+            className: 'btn btn-outline-success btn-sm'
+          },
+          {
+            extend: 'csvHtml5',
+            className: 'btn btn-outline-primary btn-sm'
+          },
+          {
+            extend: 'print',
+            className: 'btn btn-outline-dark btn-sm'
+          }
+        ],
+        pageLength: 10,
+        order: [[0, 'desc']],
+        responsive: true
+      });
+    });
+  </script>
+{% endblock %}

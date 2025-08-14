@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - SekouAI{% endblock %}
+
+{% block content %}
+<main role="main">
+  <!-- Dashboard Section -->
+  <section id="view-dashboard" class="view active">
+    <h2 class="mb-4">Analysis Dashboard</h2>
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm">
+          <div class="card-body">
+            <h6 class="text-muted">Total</h6>
+            <h4 id="stat-total">0</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm">
+          <div class="card-body">
+            <h6 class="text-success">Low</h6>
+            <h4 id="stat-low">0</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm">
+          <div class="card-body">
+            <h6 class="text-warning">Medium</h6>
+            <h4 id="stat-medium">0</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm">
+          <div class="card-body">
+            <h6 class="text-danger">High</h6>
+            <h4 id="stat-high">0</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Bar Chart -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">Risk Distribution (Bar Chart)</div>
+      <div class="card-body">
+        <canvas id="risk-chart" style="width: 100%; max-height: 280px;" aria-label="Bar chart of risk distribution" role="img"></canvas>
+      </div>
+    </div>
+
+    <!-- Risk Pie Chart -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header">Risk Distribution (Pie Chart)</div>
+      <div class="card-body">
+        <div id="risk-pie-chart" style="height: 300px; width: 100%;"></div>
+      </div>
+    </div>
+
+    <!-- Top Comorbidities -->
+    <div class="card shadow-sm">
+      <div class="card-header">Top Comorbidities</div>
+      <ul class="list-group list-group-flush" id="comorb-list">
+        <li class="list-group-item text-muted">No data yet.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Add Patient Section -->
+  <section id="view-add" class="view d-none">
+    <h2 class="mb-4">Add Patient</h2>
+    {% include "partials/add_patient_form.html" %}
+  </section>
+
+  <!-- History Section -->
+  <section id="view-history" class="view d-none">
+    <h2 class="mb-4">Recent Predictions</h2>
+    <div class="mb-3">
+      <button id="btn-refresh-history" class="btn btn-outline-primary">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Sex</th>
+            <th>Age</th>
+            <th>Risk Level</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="predictions-body">
+          <tr>
+            <td colspan="6" class="text-muted">No records yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

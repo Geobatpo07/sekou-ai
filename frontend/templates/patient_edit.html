@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% block title %}Edit Patient - SekouAI{% endblock %}
+
+{% block content %}
+<main role="main">
+  <section class="card p-4 shadow-sm mb-5">
+    <h2 class="h5 mb-4">Edit Patient</h2>
+    <form id="edit-form" class="needs-validation" novalidate>
+      <input type="hidden" name="id" value="{{ patient.id }}"/>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="name" class="form-label">Full Name</label>
+          <input id="name" name="name" class="form-control" type="text" value="{{ patient.input_data.name }}" required>
+        </div>
+        <div class="col-md-6">
+          <label for="age" class="form-label">Age</label>
+          <input id="age" name="age" class="form-control" type="number" min="0" max="120" value="{{ patient.input_data.age }}" required>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="sex" class="form-label">Sex</label>
+          <select id="sex" name="sex" class="form-select" required>
+            <option value="male" {{ 'selected' if patient.input_data.sex == 'male' }}>Male</option>
+            <option value="female" {{ 'selected' if patient.input_data.sex == 'female' }}>Female</option>
+            <option value="other" {{ 'selected' if patient.input_data.sex == 'other' }}>Other</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="antecedents" class="form-label">Antecedents</label>
+          <input id="antecedents" name="antecedents" class="form-control" type="text" value="{{ patient.input_data.antecedents }}">
+        </div>
+      </div>
+
+      <fieldset class="mb-4">
+        <legend class="small text-muted">Symptoms</legend>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="fever" name="fever" {% if patient.input_data.fever %}checked{% endif %}>
+          <label class="form-check-label" for="fever">Fever</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="cough" name="cough" {% if patient.input_data.cough %}checked{% endif %}>
+          <label class="form-check-label" for="cough">Cough</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="shortness_of_breath" name="shortness_of_breath" {% if patient.input_data.shortness_of_breath %}checked{% endif %}>
+          <label class="form-check-label" for="shortness_of_breath">Shortness of breath</label>
+        </div>
+      </fieldset>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-save me-1"></i> Update Patient
+        </button>
+        <a href="/patients" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Cancel
+        </a>
+      </div>
+    </form>
+
+    <div id="update-status" class="mt-3" style="display:none;"></div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  document.getElementById('edit-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const patientId = {{ patient.id }};
+    const payload = {
+      name: document.getElementById('name').value,
+      age: parseInt(document.getElementById('age').value),
+      sex: document.getElementById('sex').value,
+      antecedents: document.getElementById('antecedents').value,
+      fever: document.getElementById('fever').checked,
+      cough: document.getElementById('cough').checked,
+      shortness_of_breath: document.getElementById('shortness_of_breath').checked
+    };
+
+    const res = await fetch(`/patients/${patientId}/edit`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+
+    const statusDiv = document.getElementById('update-status');
+    if (res.ok) {
+      statusDiv.innerHTML = `<div class="alert alert-success">Patient updated successfully.</div>`;
+      statusDiv.style.display = "block";
+    } else {
+      statusDiv.innerHTML = `<div class="alert alert-danger">Failed to update patient.</div>`;
+      statusDiv.style.display = "block";
+    }
+  });
+</script>
+{% endblock %}
